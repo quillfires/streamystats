@@ -6,9 +6,7 @@ WORKDIR /app
 COPY package.json bun.lock ./
 COPY packages/database/package.json ./packages/database/
 COPY apps/job-server/package.json ./apps/job-server/
-
-# Create stub for nextjs-app to satisfy workspace requirements
-RUN mkdir -p apps/nextjs-app && echo '{"name":"@streamystats/nextjs-app","version":"0.0.0","dependencies":{}}' > apps/nextjs-app/package.json
+COPY apps/nextjs-app/package.json ./apps/nextjs-app/
 
 # Install dependencies
 RUN bun install --frozen-lockfile
