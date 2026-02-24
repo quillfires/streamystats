@@ -4,6 +4,33 @@ import { NextResponse } from "next/server";
 import { basePath } from "@/lib/utils";
 import { getServer, getServers } from "./lib/db/server";
 
+const SECURITY_HEADERS: Record<string, string> = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy":
+    "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+};
+
+function applySecurityHeaders(
+  request: NextRequest,
+  response: NextResponse,
+): NextResponse {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  const isHttps =
+    request.nextUrl.protocol === "https:" ||
+    request.headers.get("x-forwarded-proto") === "https";
+  if (isHttps) {
+    response.headers.set(
+      "Strict-Transport-Security",
+      "max-age=63072000; includeSubDomains",
+    );
+  }
+  return response;
+}
+
 /**
  * Middleware with Signed Session Authentication
  *
@@ -277,6 +304,10 @@ const validateJellyfinToken = async (
 };
 
 export async function proxy(request: NextRequest) {
+  return applySecurityHeaders(request, await handleProxy(request));
+}
+
+async function handleProxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const { id, page, subPage, name, userSubPage } = parsePathname(pathname);
 
