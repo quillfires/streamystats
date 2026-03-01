@@ -14,6 +14,7 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
+import { getInternalUrl } from "@/lib/server-url";
 
 export interface MarkWatchedResult {
   success: boolean;
@@ -116,7 +117,7 @@ export async function markItemWatched(
   try {
     const method = watched ? "POST" : "DELETE";
     const response = await fetch(
-      `${server.url}/Users/${session.id}/PlayedItems/${itemId}`,
+      `${getInternalUrl(server)}/Users/${session.id}/PlayedItems/${itemId}`,
       {
         method,
         headers: {
