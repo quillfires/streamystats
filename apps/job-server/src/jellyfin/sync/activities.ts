@@ -424,6 +424,7 @@ export async function syncRecentActivities(
     );
 
     if (intelligent && mostRecentDbActivityId && !foundLastKnownActivity) {
+      const warningMessage = `Intelligent sync did not find last known activity (id: ${mostRecentDbActivityId}) within ${pagesFetched} pages. The activity may be older than the fetched data.`;
       console.info(
         formatSyncLogLine("recent-activities-sync", {
           server: server.name,
@@ -435,10 +436,13 @@ export async function syncRecentActivities(
           processMs: 0,
           totalProcessed: finalMetrics.activitiesProcessed,
           intelligent,
-          message: "Intelligent sync did not find last known activity",
+          message: warningMessage,
           lastKnownActivityId: mostRecentDbActivityId,
         })
       );
+      // Informational condition (the anchor scrolled out of the fetched window),
+      // not a sync error. Fall through to the normal success/partial result
+      // based on `errors` below. The next scheduled run resumes from the cursor.
     }
 
     if (errors.length > 0) {
